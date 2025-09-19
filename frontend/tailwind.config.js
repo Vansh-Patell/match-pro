@@ -8,5 +8,9 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    require('tailwindcss-font-inter')({
+      importFontFace: true,
+    }),
+  ],
 }

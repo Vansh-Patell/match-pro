@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from './AuthModal';
 
 const LandingPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup'
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -10,6 +15,24 @@ const LandingPage = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleSignIn = () => {
+    setAuthMode('signin');
+    setShowAuthModal(true);
+  };
+
+  const handleGetStarted = () => {
+    setAuthMode('signup');
+    setShowAuthModal(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white">
@@ -24,19 +47,47 @@ const LandingPage = () => {
             Match-Pro
           </div>
           
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-12">
             <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors">How It Works</a>
-            <a href="#about" className="text-gray-300 hover:text-white transition-colors">About</a>
           </div>
 
           <div className="flex items-center space-x-4">
-            <button className="text-gray-300 hover:text-white transition-colors px-4 py-2">
-              Sign In
-            </button>
-            <button className="bg-white text-black px-6 py-2 rounded-lg hover:bg-gray-100 transition-all hover:scale-105">
-              Get Started
-            </button>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={user.photoURL || '/default-avatar.png'}
+                    alt={user.displayName || 'User'}
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <span className="text-white text-sm hidden sm:block">
+                    {user.displayName || user.email}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={handleSignIn}
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={handleGetStarted}
+                  className="bg-white text-black px-6 py-2 rounded-lg hover:bg-gray-100 transition-all hover:scale-105"
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
         </nav>
       </header>
@@ -68,12 +119,24 @@ const LandingPage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="group bg-white text-black px-8 py-4 rounded-lg text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 flex items-center justify-center">
-                  Optimize My Resume
-                  <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </button>
+                {user ? (
+                  <button className="group bg-white text-black px-8 py-4 rounded-lg text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 flex items-center justify-center">
+                    Go to Dashboard
+                    <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleGetStarted}
+                    className="group bg-white text-black px-8 py-4 rounded-lg text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 flex items-center justify-center"
+                  >
+                    Optimize My Resume
+                    <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </button>
+                )}
                 <button className="border border-slate-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:border-slate-400 hover:bg-slate-800/50 transition-all">
                   Watch Demo
                 </button>
@@ -275,12 +338,24 @@ const LandingPage = () => {
           <p className="text-xl text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
             Join professionals who've revolutionized their job search with AI-powered resume optimization. Stand out from the competition and land interviews faster.
           </p>
-          <button className="group bg-white text-black px-10 py-5 rounded-xl text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 inline-flex items-center">
-            Start Optimizing Now
-            <svg className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </button>
+          {user ? (
+            <button className="group bg-white text-black px-10 py-5 rounded-xl text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 inline-flex items-center">
+              Go to Dashboard
+              <svg className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={handleGetStarted}
+              className="group bg-white text-black px-10 py-5 rounded-xl text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 inline-flex items-center"
+            >
+              Start Optimizing Now
+              <svg className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
+          )}
         </div>
       </section>
 
@@ -384,6 +459,13 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        mode={authMode}
+      />
     </div>
   );
 };
