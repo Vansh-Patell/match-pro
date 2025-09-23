@@ -5,7 +5,10 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithRedirect,
-  getRedirectResult
+  getRedirectResult,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
 import { authAPI } from '../lib/api';
@@ -47,6 +50,64 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sign up with email and password
+  const signUpWithEmail = async (email, password, fullName) => {
+    try {
+      setLoading(true);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update the user's display name
+      await updateProfile(result.user, {
+        displayName: fullName
+      });
+      
+      await syncUserWithBackend(result.user);
+      return result.user;
+    } catch (error) {
+      console.error('Error signing up with email:', error);
+      // Convert Firebase errors to user-friendly messages
+      let errorMessage = error.message;
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      }
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sign in with email and password
+  const signInWithEmail = async (email, password) => {
+    try {
+      setLoading(true);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      await syncUserWithBackend(result.user);
+      return result.user;
+    } catch (error) {
+      console.error('Error signing in with email:', error);
+      // Convert Firebase errors to user-friendly messages
+      let errorMessage = error.message;
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address';
+      } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        errorMessage = 'Incorrect email or password. Please try again.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled. Please contact support.';
+      }
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -116,6 +177,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     signInWithGoogle,
     signInWithGoogleRedirect,
+    signUpWithEmail,
+    signInWithEmail,
     logout,
     syncUserWithBackend,
   };

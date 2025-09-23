@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const AuthModal = ({ isOpen, onClose, mode = 'signin' }) => {
-  const { signInWithGoogle, loading } = useAuth();
+const AuthModal = ({ isOpen, onClose, mode = 'signin', onModeSwitch }) => {
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, loading } = useAuth();
   const [authLoading, setAuthLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: ''
+  });
+  const [errors, setErrors] = useState({});
+
+  // Clear form data when mode changes
+  useEffect(() => {
+    setFormData({ email: '', password: '', confirmPassword: '', fullName: '' });
+    setErrors({});
+  }, [mode]);
 
   const handleGoogleAuth = async () => {
     try {
@@ -12,13 +25,171 @@ const AuthModal = ({ isOpen, onClose, mode = 'signin' }) => {
       onClose(); // Close modal on successful auth
     } catch (error) {
       console.error('Authentication error:', error);
-      // You could add error state here to show to user
+      setErrors({ google: error.message });
     } finally {
       setAuthLoading(false);
     }
   };
 
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setErrors({});
+    
+    try {
+      setAuthLoading(true);
+      
+      if (mode === 'signup') {
+        // Validation for signup - check in proper order
+        if (!formData.fullName.trim()) {
+          setErrors({ fullName: 'Full name is required' });
+          return;
+        }
+        
+        // 1. First check password length
+        if (formData.password.length < 8) {
+          setErrors({ password: 'Password must be at least 8 characters long' });
+          return;
+        }
+        
+        // 2. Then check password complexity
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@#_])[A-Za-z\d@#_]+$/;
+        if (!passwordRegex.test(formData.password)) {
+          setErrors({ password: 'Password must contain letters, numbers, and at least one of: @, #, _' });
+          return;
+        }
+        
+        // 3. Finally check if passwords match
+        if (formData.password !== formData.confirmPassword) {
+          setErrors({ confirmPassword: 'Passwords do not match' });
+          return;
+        }
+        
+        await signUpWithEmail(formData.email, formData.password, formData.fullName);
+      } else {
+        // Sign in - only basic validation
+        if (formData.password.length === 0) {
+          setErrors({ password: 'Password is required' });
+          return;
+        }
+        
+        await signInWithEmail(formData.email, formData.password);
+      }
+      
+      onClose(); // Close modal on successful auth
+    } catch (error) {
+      console.error('Authentication error:', error);
+      
+      // Clear password field on authentication error (not validation errors)
+      if (mode !== 'signup') {
+        setFormData(prev => ({ ...prev, password: '' }));
+      }
+      
+      setErrors({ email: error.message });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+    
+    // Real-time validation
+    let newErrors = { ...errors };
+    
+    if (name === 'password' && mode === 'signup') {
+      if (value.length > 0 && value.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters long';
+      } else if (value.length >= 8) {
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@#_])[A-Za-z\d@#_]+$/;
+        if (!passwordRegex.test(value)) {
+          newErrors.password = 'Password must contain letters, numbers, and at least one of: @, #, _';
+        } else {
+          newErrors.password = '';
+        }
+      } else {
+        newErrors.password = '';
+      }
+      
+      // Check confirm password match if it has value
+      if (formData.confirmPassword && value !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      } else if (formData.confirmPassword && value === formData.confirmPassword) {
+        newErrors.confirmPassword = '';
+      }
+    }
+    
+    if (name === 'confirmPassword' && mode === 'signup') {
+      if (value !== formData.password) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      } else {
+        newErrors.confirmPassword = '';
+      }
+    }
+    
+    if (name === 'fullName' && mode === 'signup') {
+      if (value.trim() === '') {
+        newErrors.fullName = 'Full name is required';
+      } else {
+        newErrors.fullName = '';
+      }
+    }
+    
+    // Clear other field errors when user starts typing
+    if (newErrors[name] && name !== 'password' && name !== 'confirmPassword') {
+      newErrors[name] = '';
+    }
+    
+    setErrors(newErrors);
+  };
+
+  const switchMode = (newMode) => {
+    if (onModeSwitch) {
+      if (mode === 'quick-signin' && newMode === 'signup') {
+        onModeSwitch('signup');
+      } else if (mode === 'signin' && newMode === 'signup') {
+        onModeSwitch('signup');
+      } else if (mode === 'signup' && newMode === 'signin') {
+        onModeSwitch('signin');
+      }
+    }
+  };
+
   if (!isOpen) return null;
+
+  const getModalConfig = () => {
+    switch (mode) {
+      case 'signup':
+        return {
+          title: 'Create your account',
+          subtitle: 'Join Match-Pro and start optimizing your resume',
+          showFullForm: true,
+          switchText: 'Already have an account?',
+          switchAction: 'Sign in'
+        };
+      case 'quick-signin':
+        return {
+          title: 'Sign in to optimize',
+          subtitle: 'Quick sign in to start resume optimization',
+          showFullForm: false,
+          switchText: 'Need an account?',
+          switchAction: 'Sign up'
+        };
+      default: // signin
+        return {
+          title: 'Welcome back',
+          subtitle: 'Sign in to your Match-Pro account',
+          showFullForm: false,
+          switchText: "Don't have an account?",
+          switchAction: 'Sign up'
+        };
+    }
+  };
+
+  const config = getModalConfig();
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -36,21 +207,25 @@ const AuthModal = ({ isOpen, onClose, mode = 'signin' }) => {
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">
-            {mode === 'signin' ? 'Welcome back' : 'Get started'}
+            {config.title}
           </h2>
           <p className="text-gray-400">
-            {mode === 'signin' 
-              ? 'Sign in to your Match-Pro account' 
-              : 'Create your Match-Pro account'
-            }
+            {config.subtitle}
           </p>
         </div>
+
+        {/* Error Display */}
+        {errors.google && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+            {errors.google}
+          </div>
+        )}
 
         {/* Google Sign In Button */}
         <button
           onClick={handleGoogleAuth}
           disabled={authLoading || loading}
-          className="w-full bg-white hover:bg-gray-50 text-gray-900 font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+          className="w-full bg-white hover:bg-gray-50 text-gray-900 font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 mb-6"
         >
           {authLoading ? (
             <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
@@ -89,39 +264,106 @@ const AuthModal = ({ isOpen, onClose, mode = 'signin' }) => {
           </div>
         </div>
 
-        {/* Email form placeholder */}
-        <div className="space-y-4">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
-            disabled
-          />
+        {/* Email form */}
+        <form onSubmit={handleEmailAuth} className="space-y-4">
+          {/* Full Name - Only for signup */}
+          {config.showFullForm && (
+            <div>
+              <input
+                type="text"
+                name="fullName"
+                placeholder="Full Name"
+                value={formData.fullName}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors ${
+                  errors.fullName ? 'border-red-500' : 'border-slate-600'
+                }`}
+                required
+              />
+              {errors.fullName && <p className="text-red-400 text-sm mt-1">{errors.fullName}</p>}
+            </div>
+          )}
+
+          {/* Email */}
+          <div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors ${
+                errors.email ? 'border-red-500' : 'border-slate-600'
+              }`}
+              required
+            />
+            {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
+          </div>
+
+          {/* Password */}
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors ${
+                errors.password ? 'border-red-500' : 'border-slate-600'
+              }`}
+              required
+            />
+            {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
+            {mode === 'signup' && !errors.password && formData.password.length > 0 && (
+              <div className="text-xs text-gray-400 mt-1">
+                {formData.password.length >= 8 ? '✓' : '○'} At least 8 characters{' '}
+                {/[a-zA-Z]/.test(formData.password) ? '✓' : '○'} Letters{' '}
+                {/\d/.test(formData.password) ? '✓' : '○'} Numbers{' '}
+                {/[@#_]/.test(formData.password) ? '✓' : '○'} Special chars (@, #, _)
+              </div>
+            )}
+          </div>
+
+          {/* Confirm Password - Only for signup */}
+          {config.showFullForm && (
+            <div>
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors ${
+                  errors.confirmPassword ? 'border-red-500' : 'border-slate-600'
+                }`}
+                required
+              />
+              {errors.confirmPassword && <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>}
+            </div>
+          )}
+
           <button
-            disabled
-            className="w-full bg-gray-600 text-gray-400 font-medium py-3 px-4 rounded-lg cursor-not-allowed"
+            type="submit"
+            disabled={authLoading || loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Coming Soon
+            {authLoading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
+            ) : (
+              mode === 'signup' ? 'Create Account' : 'Sign In'
+            )}
           </button>
-        </div>
+        </form>
 
         {/* Footer */}
         <p className="text-center text-gray-400 text-sm mt-6">
-          {mode === 'signin' ? (
-            <>
-              Don't have an account?{' '}
-              <button className="text-blue-400 hover:text-blue-300 transition-colors">
-                Sign up
-              </button>
-            </>
-          ) : (
-            <>
-              Already have an account?{' '}
-              <button className="text-blue-400 hover:text-blue-300 transition-colors">
-                Sign in
-              </button>
-            </>
-          )}
+          {config.switchText}{' '}
+          <button 
+            onClick={() => switchMode(mode === 'signin' || mode === 'quick-signin' ? 'signup' : 'signin')}
+            className="text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            {config.switchAction}
+          </button>
         </p>
       </div>
     </div>

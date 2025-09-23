@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
+import MainPage from './MainPage';
 
 const LandingPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup'
+  const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup' or 'quick-signin'
+  const [activeStep, setActiveStep] = useState(0);
+  const [isStepsVisible, setIsStepsVisible] = useState(false);
   const { user, logout } = useAuth();
 
   useEffect(() => {
@@ -15,6 +18,46 @@ const LandingPage = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Intersection Observer for "How It Works" section
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.target.id === 'how-it-works') {
+            setIsStepsVisible(true);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    const section = document.getElementById('how-it-works');
+    if (section) {
+      observer.observe(section);
+    }
+
+    return () => {
+      if (section) {
+        observer.unobserve(section);
+      }
+    };
+  }, []);
+
+  // Sequential step animation
+  useEffect(() => {
+    if (isStepsVisible) {
+      const timers = [];
+      for (let i = 0; i < 4; i++) {
+        timers.push(
+          setTimeout(() => {
+            setActiveStep(i + 1);
+          }, (i + 1) * 600) // 600ms delay between each step
+        );
+      }
+      return () => timers.forEach(timer => clearTimeout(timer));
+    }
+  }, [isStepsVisible]);
 
   const handleSignIn = () => {
     setAuthMode('signin');
@@ -26,6 +69,21 @@ const LandingPage = () => {
     setShowAuthModal(true);
   };
 
+  const handleStartOptimizing = () => {
+    setAuthMode('quick-signin');
+    setShowAuthModal(true);
+  };
+
+  const handleModeSwitch = (newMode) => {
+    setAuthMode(newMode);
+    // Don't close modal, just switch mode
+  };
+
+  const handleCloseModal = () => {
+    setShowAuthModal(false);
+    // Clear any mode when closing
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -33,6 +91,11 @@ const LandingPage = () => {
       console.error('Error logging out:', error);
     }
   };
+
+  // If user is authenticated, show the main page
+  if (user) {
+    return <MainPage />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white">
@@ -128,10 +191,10 @@ const LandingPage = () => {
                   </button>
                 ) : (
                   <button
-                    onClick={handleGetStarted}
+                    onClick={handleStartOptimizing}
                     className="group bg-white text-black px-8 py-4 rounded-lg text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 flex items-center justify-center"
                   >
-                    Optimize My Resume
+                    Start Optimizing
                     <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
@@ -140,16 +203,6 @@ const LandingPage = () => {
                 <button className="border border-slate-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:border-slate-400 hover:bg-slate-800/50 transition-all">
                   Watch Demo
                 </button>
-              </div>
-
-              <div className="pt-8">
-                <p className="text-sm text-gray-500 mb-4">Trusted by professionals at</p>
-                <div className="flex items-center space-x-8 text-gray-400">
-                  <span className="font-medium">Google</span>
-                  <span className="font-medium">Meta</span>
-                  <span className="font-medium">Amazon</span>
-                  <span className="font-medium">Microsoft</span>
-                </div>
               </div>
             </div>
 
@@ -283,6 +336,31 @@ const LandingPage = () => {
             </p>
           </div>
 
+          {/* Animated Progress Line */}
+          <div className="relative mb-16 hidden lg:block">
+            {/* Background line */}
+            <div className="absolute top-8 left-0 right-0 h-0.5 bg-slate-700 mx-auto" style={{ width: '75%', left: '12.5%' }}></div>
+            
+            {/* Animated progress line */}
+            <div 
+              className="absolute top-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-1000 ease-out"
+              style={{ 
+                left: '12.5%',
+                width: activeStep > 1 ? `${Math.min((activeStep - 1) * 25, 75)}%` : '0%'
+              }}
+            ></div>
+            
+            {/* Moving indicator box */}
+            <div 
+              className={`absolute top-6 transform -translate-x-1/2 w-1 h-4 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full transition-all duration-800 ease-out shadow-lg shadow-blue-400/50 ${
+                activeStep > 0 ? 'opacity-100' : 'opacity-0'
+              }`}
+              style={{ 
+                left: `${12.5 + Math.min((activeStep - 1) * 25, 75)}%`
+              }}
+            ></div>
+          </div>
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
@@ -306,17 +384,40 @@ const LandingPage = () => {
                 description: "Download your optimized resume and apply with confidence, knowing you're a stronger candidate."
               }
             ].map((item, index) => (
-              <div key={index} className="text-center group">
+              <div 
+                key={index} 
+                className={`text-center group transition-all duration-700 ease-out ${
+                  activeStep > index 
+                    ? 'opacity-100 translate-y-0' 
+                    : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: `${index * 200}ms` }}
+              >
                 <div className="relative mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-2xl mx-auto flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                  <div 
+                    className={`w-16 h-16 text-white rounded-2xl mx-auto flex items-center justify-center text-xl font-bold transition-all duration-500 ${
+                      activeStep > index 
+                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 scale-100 shadow-lg shadow-blue-500/30' 
+                        : 'bg-slate-600 scale-90'
+                    }`}
+                  >
                     {item.step}
                   </div>
-                  {index < 3 && (
-                    <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-gradient-to-r from-blue-500/50 to-purple-500/50"></div>
+                  {/* Pulse effect for active step */}
+                  {activeStep === index + 1 && (
+                    <div className="absolute inset-0 w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl animate-ping opacity-20"></div>
                   )}
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-white">{item.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{item.description}</p>
+                <h3 className={`text-xl font-bold mb-4 transition-colors duration-500 ${
+                  activeStep > index ? 'text-white' : 'text-gray-500'
+                }`}>
+                  {item.title}
+                </h3>
+                <p className={`leading-relaxed transition-colors duration-500 ${
+                  activeStep > index ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  {item.description}
+                </p>
               </div>
             ))}
           </div>
@@ -338,24 +439,6 @@ const LandingPage = () => {
           <p className="text-xl text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
             Join professionals who've revolutionized their job search with AI-powered resume optimization. Stand out from the competition and land interviews faster.
           </p>
-          {user ? (
-            <button className="group bg-white text-black px-10 py-5 rounded-xl text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 inline-flex items-center">
-              Go to Dashboard
-              <svg className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </button>
-          ) : (
-            <button
-              onClick={handleGetStarted}
-              className="group bg-white text-black px-10 py-5 rounded-xl text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 inline-flex items-center"
-            >
-              Start Optimizing Now
-              <svg className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </button>
-          )}
         </div>
       </section>
 
@@ -463,8 +546,9 @@ const LandingPage = () => {
       {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={handleCloseModal}
         mode={authMode}
+        onModeSwitch={handleModeSwitch}
       />
     </div>
   );
