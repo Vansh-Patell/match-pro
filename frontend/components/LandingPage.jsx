@@ -98,21 +98,22 @@ const LandingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       {/* Header */}
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50' 
-          : 'bg-transparent'
+          ? 'bg-slate-900/95 backdrop-blur-xl border-b border-orange-500/20 shadow-lg shadow-orange-500/10' 
+          : 'bg-slate-900/80 backdrop-blur-sm'
       }`}>
-        <nav className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+        <nav className="max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div className="text-3xl font-bold bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 bg-clip-text text-transparent">
             Match-Pro
           </div>
           
           <div className="hidden md:flex items-center space-x-12">
-            <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
-            <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors">How It Works</a>
+            <a href="#features" className="text-gray-300 hover:text-orange-400 transition-colors font-medium">Features</a>
+            <a href="#how-it-works" className="text-gray-300 hover:text-teal-400 transition-colors font-medium">How It Works</a>
+            <a href="#pricing" className="text-gray-300 hover:text-pink-400 transition-colors font-medium">Pricing</a>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -122,15 +123,15 @@ const LandingPage = () => {
                   <img
                     src={user.photoURL || '/default-avatar.png'}
                     alt={user.displayName || 'User'}
-                    className="w-8 h-8 rounded-full"
+                    className="w-10 h-10 rounded-full border-2 border-gray-300"
                   />
-                  <span className="text-white text-sm hidden sm:block">
+                  <span className="text-gray-900 text-sm hidden sm:block font-medium">
                     {user.displayName || user.email}
                   </span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="text-gray-300 hover:text-white transition-colors px-4 py-2"
+                  className="text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 rounded-lg hover:bg-gray-100"
                 >
                   Sign Out
                 </button>
@@ -139,13 +140,13 @@ const LandingPage = () => {
               <>
                 <button
                   onClick={handleSignIn}
-                  className="text-gray-300 hover:text-white transition-colors px-4 py-2"
+                  className="text-gray-300 hover:text-white transition-colors px-6 py-2 rounded-lg hover:bg-slate-800 font-medium"
                 >
                   Sign In
                 </button>
                 <button
                   onClick={handleGetStarted}
-                  className="bg-white text-black px-6 py-2 rounded-lg hover:bg-gray-100 transition-all hover:scale-105"
+                  className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-3 rounded-xl font-semibold transition-all hover:scale-105 shadow-lg hover:shadow-orange-500/25"
                 >
                   Get Started
                 </button>
@@ -156,122 +157,119 @@ const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-20 px-6 lg:px-8 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:32px_32px] pointer-events-none"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-b from-blue-500/10 to-transparent rounded-full blur-3xl"></div>
+      <section className="pt-32 pb-24 px-6 lg:px-8 relative overflow-hidden">
+        {/* Dynamic Background Effects */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(251,146,60,0.15)_0%,transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(236,72,153,0.15)_0%,transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,rgba(20,184,166,0.1)_0%,transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(163,230,53,0.08)_0%,transparent_50%)]"></div>
         
         <div className="max-w-7xl mx-auto relative">
-          <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[80vh]">
-            <div className="space-y-8">
-              <div className="space-y-6">
-                <div className="inline-flex items-center px-4 py-2 rounded-full border border-slate-700 bg-slate-800/50 text-sm text-gray-300 mb-6">
-                  <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                  AI-Powered Resume Optimization
-                </div>
-                <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                  Land Your{' '}
-                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-600 bg-clip-text text-transparent">
-                    Dream Job
-                  </span>{' '}
-                  with Intelligent Resume Matching
-                </h1>
-                <p className="text-xl text-gray-300 leading-relaxed max-w-lg">
-                  Stop sending generic resumes. Our advanced AI analyzes job descriptions, optimizes your resume with the right keywords, and provides real-time match scores.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                {user ? (
-                  <button className="group bg-white text-black px-8 py-4 rounded-lg text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 flex items-center justify-center">
-                    Go to Dashboard
-                    <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleStartOptimizing}
-                    className="group bg-white text-black px-8 py-4 rounded-lg text-lg font-medium hover:bg-gray-100 transition-all hover:scale-105 flex items-center justify-center"
-                  >
-                    Start Optimizing
-                    <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </button>
-                )}
-                <button className="border border-slate-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:border-slate-400 hover:bg-slate-800/50 transition-all">
-                  Watch Demo
-                </button>
-              </div>
+          <div className="text-center space-y-8 max-w-5xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-400/30 backdrop-blur-sm font-medium text-sm mb-8">
+              <div className="w-2 h-2 bg-lime-400 rounded-full mr-3 animate-pulse"></div>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400">
+                Supercharge your resume with AI
+              </span>
             </div>
 
-            {/* Resume Visual */}
-            <div className="flex justify-center lg:justify-end">
-              <div className="relative">
-                {/* Main Resume Card */}
-                <div className="bg-white/5 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-2xl p-8 w-80 h-96 transform -rotate-3 hover:rotate-0 transition-all duration-500 hover:scale-105">
-                  {/* AI Badge */}
-                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1 rounded-full font-medium animate-pulse">
-                    AI Optimized
-                  </div>
-                  
-                  {/* Resume Content Mockup */}
-                  <div className="space-y-4">
-                    <div className="h-6 bg-gradient-to-r from-white to-gray-300 rounded w-3/4"></div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-slate-600/50 rounded w-full"></div>
-                      <div className="h-3 bg-slate-600/50 rounded w-5/6"></div>
-                      <div className="h-3 bg-slate-600/50 rounded w-4/5"></div>
-                    </div>
-                    
-                    <div className="pt-4">
-                      <div className="h-4 bg-slate-300 rounded w-1/2 mb-3"></div>
-                      <div className="space-y-2">
-                        <div className="h-2 bg-slate-700/50 rounded w-full"></div>
-                        <div className="h-2 bg-slate-700/50 rounded w-11/12"></div>
-                        <div className="h-2 bg-slate-700/50 rounded w-4/5"></div>
-                      </div>
-                    </div>
+            {/* Main Headline */}
+            <h1 className="text-6xl lg:text-8xl font-black leading-tight text-white">
+              Land Your{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400">
+                Dream Job
+              </span>
+            </h1>
+            
+            <h2 className="text-2xl lg:text-4xl font-bold text-gray-300 leading-relaxed">
+              with Intelligent Resume Optimization
+            </h2>
 
-                    <div className="pt-4">
-                      <div className="h-4 bg-slate-400 rounded w-2/3 mb-3"></div>
-                      <div className="space-y-2">
-                        <div className="h-2 bg-slate-700/50 rounded w-5/6"></div>
-                        <div className="h-2 bg-slate-700/50 rounded w-3/4"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <p className="text-xl lg:text-2xl text-gray-400 leading-relaxed max-w-4xl mx-auto">
+              Stop sending generic resumes. Our advanced AI analyzes job descriptions, optimizes your resume with the right keywords, and provides real-time ATS compatibility scores.
+            </p>
 
-                {/* Floating Stats */}
-                <div className="absolute -top-6 -left-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-sm border border-green-500/30 text-green-300 text-xs px-3 py-2 rounded-lg font-medium">
-                  Match Score: 94%
-                </div>
-                <div className="absolute -bottom-6 -right-6 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-500/30 text-blue-300 text-xs px-3 py-2 rounded-lg font-medium">
-                  Keywords: +12
-                </div>
-                <div className="absolute top-1/2 -left-8 bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm border border-purple-500/30 text-purple-300 text-xs px-3 py-2 rounded-lg font-medium">
-                  ATS Score: 98%
-                </div>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
+              {user ? (
+                <button className="group bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-5 rounded-2xl text-xl font-bold transition-all hover:scale-105 shadow-2xl hover:shadow-orange-500/25 flex items-center">
+                  Go to Dashboard
+                  <svg className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  onClick={handleStartOptimizing}
+                  className="group bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-5 rounded-2xl text-xl font-bold transition-all hover:scale-105 shadow-2xl hover:shadow-orange-500/25 flex items-center"
+                >
+                  Start Optimizing — it's free
+                  <svg className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </button>
+              )}
+              <button className="border-2 border-teal-400/50 hover:border-teal-400 text-teal-300 hover:text-teal-200 hover:bg-teal-400/10 px-12 py-5 rounded-2xl text-xl font-bold transition-all hover:scale-105 backdrop-blur-sm shadow-lg hover:shadow-teal-400/20">
+                Watch Demo
+              </button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="pt-16 text-center">
+              <p className="text-gray-400 text-lg font-medium mb-8">Trusted by job seekers at</p>
+              <div className="flex flex-wrap justify-center items-center gap-12 opacity-60">
+                <div className="text-gray-400 font-bold text-2xl">Google</div>
+                <div className="text-gray-400 font-bold text-2xl">Microsoft</div>
+                <div className="text-gray-400 font-bold text-2xl">Amazon</div>
+                <div className="text-gray-400 font-bold text-2xl">Meta</div>
+                <div className="text-gray-400 font-bold text-2xl">Apple</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Stats Section */}
+      <section className="py-24 px-6 lg:px-8 bg-gradient-to-r from-blue-50 via-purple-50 to-emerald-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+                98%
+              </div>
+              <div className="text-xl font-bold text-gray-900 mb-2">ATS Pass Rate</div>
+              <div className="text-gray-600">of optimized resumes pass ATS screening</div>
+            </div>
+            <div className="text-center">
+              <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-emerald-600 mb-4">
+                3.2x
+              </div>
+              <div className="text-xl font-bold text-gray-900 mb-2">More Interviews</div>
+              <div className="text-gray-600">increase in interview requests</div>
+            </div>
+            <div className="text-center">
+              <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600 mb-4">
+                50K+
+              </div>
+              <div className="text-xl font-bold text-gray-900 mb-2">Success Stories</div>
+              <div className="text-gray-600">professionals landed their dream jobs</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section id="features" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-800/20 to-transparent"></div>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
+      <section id="features" className="py-24 px-6 lg:px-8 bg-slate-800">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="text-5xl lg:text-6xl font-black mb-6 text-white">
               Why Choose{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400">
                 Match-Pro?
               </span>
             </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
               Advanced AI technology that understands both your resume and job requirements to maximize your chances of success.
             </p>
           </div>
@@ -280,39 +278,48 @@ const LandingPage = () => {
             {[
               {
                 icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 ),
                 title: "AI Resume Analysis",
-                description: "Advanced NLP algorithms analyze your resume and suggest improvements for keywords, phrasing, and formatting to match industry standards."
+                description: "Advanced NLP algorithms analyze your resume and suggest improvements for keywords, phrasing, and formatting to match industry standards.",
+                color: "orange"
               },
               {
                 icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 ),
                 title: "Job Match Scoring",
-                description: "Get real-time compatibility scores between your resume and job descriptions. Know exactly where you stand before applying."
+                description: "Get real-time compatibility scores between your resume and job descriptions. Know exactly where you stand before applying.",
+                color: "teal"
               },
               {
                 icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 ),
                 title: "Instant Optimization",
-                description: "Upload your resume and paste any job description. Get optimized suggestions in seconds, not hours."
+                description: "Upload your resume and paste any job description. Get optimized suggestions in seconds, not hours.",
+                color: "pink"
               }
             ].map((feature, index) => (
               <div key={index} className="group relative">
-                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 h-full transition-all duration-300 hover:border-slate-600/50 hover:bg-slate-800/70">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl mb-6 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                <div className="bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 rounded-3xl p-10 h-full transition-all duration-300 hover:shadow-2xl hover:border-slate-500 hover:bg-slate-700/70 shadow-lg">
+                  <div className={`w-20 h-20 bg-gradient-to-br ${
+                    feature.color === 'orange' 
+                      ? 'from-orange-500/20 to-orange-400/30 text-orange-400' 
+                      : feature.color === 'teal' 
+                        ? 'from-teal-500/20 to-teal-400/30 text-teal-400'
+                        : 'from-pink-500/20 to-pink-400/30 text-pink-400'
+                  } rounded-2xl mb-8 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-white">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-2xl font-bold mb-6 text-white">{feature.title}</h3>
+                  <p className="text-gray-300 leading-relaxed text-lg">{feature.description}</p>
                 </div>
               </div>
             ))}
@@ -321,13 +328,17 @@ const LandingPage = () => {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/50 via-transparent to-slate-900/50"></div>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
+            {/* How It Works Section */}
+      <section id="how-it-works" className="py-24 px-6 lg:px-8 bg-slate-900 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(251,146,60,0.1)_0%,transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(236,72,153,0.1)_0%,transparent_50%)]"></div>
+        
+        <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-20">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+            <h2 className="text-5xl lg:text-6xl font-black mb-6 text-white">
               How It{' '}
-              <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400">
                 Works
               </span>
             </h2>
@@ -343,7 +354,7 @@ const LandingPage = () => {
             
             {/* Animated progress line */}
             <div 
-              className="absolute top-8 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-1000 ease-out"
+              className="absolute top-8 h-0.5 bg-gradient-to-r from-orange-500 to-pink-500 transition-all duration-1000 ease-out"
               style={{ 
                 left: '12.5%',
                 width: activeStep > 1 ? `${Math.min((activeStep - 1) * 25, 75)}%` : '0%'
@@ -352,7 +363,7 @@ const LandingPage = () => {
             
             {/* Moving indicator box */}
             <div 
-              className={`absolute top-6 transform -translate-x-1/2 w-1 h-4 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full transition-all duration-800 ease-out shadow-lg shadow-blue-400/50 ${
+              className={`absolute top-6 transform -translate-x-1/2 w-1 h-4 bg-gradient-to-b from-orange-400 to-pink-400 rounded-full transition-all duration-800 ease-out shadow-lg shadow-orange-400/50 ${
                 activeStep > 0 ? 'opacity-100' : 'opacity-0'
               }`}
               style={{ 
@@ -397,7 +408,7 @@ const LandingPage = () => {
                   <div 
                     className={`w-16 h-16 text-white rounded-2xl mx-auto flex items-center justify-center text-xl font-bold transition-all duration-500 ${
                       activeStep > index 
-                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 scale-100 shadow-lg shadow-blue-500/30' 
+                        ? 'bg-gradient-to-br from-orange-500 to-pink-600 scale-100 shadow-lg shadow-orange-500/30' 
                         : 'bg-slate-600 scale-90'
                     }`}
                   >
@@ -405,7 +416,7 @@ const LandingPage = () => {
                   </div>
                   {/* Pulse effect for active step */}
                   {activeStep === index + 1 && (
-                    <div className="absolute inset-0 w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl animate-ping opacity-20"></div>
+                    <div className="absolute inset-0 w-16 h-16 mx-auto bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl animate-ping opacity-20"></div>
                   )}
                 </div>
                 <h3 className={`text-xl font-bold mb-4 transition-colors duration-500 ${
@@ -425,20 +436,30 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1)_0%,transparent_50%)]"></div>
+      <section className="py-24 relative overflow-hidden bg-slate-800">
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 via-pink-600/20 to-teal-600/20"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.1)_0%,transparent_50%)]"></div>
         
         <div className="max-w-4xl mx-auto text-center px-6 lg:px-8 relative">
-          <h2 className="text-4xl lg:text-6xl font-bold mb-6">
+          <h2 className="text-4xl lg:text-6xl font-bold mb-6 text-white">
             Ready to Transform Your{' '}
-            <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 bg-clip-text text-transparent">
               Career?
             </span>
           </h2>
           <p className="text-xl text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
             Join professionals who've revolutionized their job search with AI-powered resume optimization. Stand out from the competition and land interviews faster.
           </p>
+          
+          <button 
+            onClick={() => setIsAuthOpen(true)}
+            className="group bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-5 rounded-2xl text-xl font-bold transition-all hover:scale-105 shadow-2xl hover:shadow-orange-500/25 flex items-center mx-auto"
+          >
+            Start Your Journey — Free
+            <svg className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </button>
         </div>
       </section>
 
