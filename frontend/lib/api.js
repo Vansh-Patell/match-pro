@@ -91,6 +91,32 @@ export const authAPI = {
   deleteUser: () => apiRequest('/auth/user', { method: 'DELETE' }),
 };
 
+// Upload API methods
+export const uploadAPI = {
+  // Get presigned URL for file upload
+  getPresignedUrl: (fileName, fileType) => apiRequest('/upload/presigned-url', {
+    method: 'POST',
+    body: JSON.stringify({ fileName, fileType }),
+  }),
+  
+  // Direct file upload to backend
+  uploadFile: (formData) => {
+    return apiRequest('/upload/direct', {
+      method: 'POST',
+      headers: {}, // Remove Content-Type to let browser set it for FormData
+      body: formData,
+    });
+  },
+  
+  // Get user's uploaded files
+  getUserFiles: () => apiRequest('/upload/files'),
+  
+  // Delete a file
+  deleteFile: (fileKey) => apiRequest(`/upload/files/${encodeURIComponent(fileKey)}`, {
+    method: 'DELETE',
+  }),
+};
+
 // Health check
 export const healthCheck = () => publicApiRequest('/health');
 

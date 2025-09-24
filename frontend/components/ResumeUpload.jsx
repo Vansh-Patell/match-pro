@@ -1,11 +1,111 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
 
 const ResumeUpload = ({ onBack }) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('text');
   const [jobDescription, setJobDescription] = useState('');
   const [jobUrl, setJobUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const files = e.dataTransfer?.files || e.target?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      
+      // Check file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        setUploadError('Please upload a PDF, DOC, or DOCX file');
+        return;
+      }
+      
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        setUploadError('File size must be less than 10MB');
+        return;
+      }
+      
+      setSelectedFile(file);
+      setUploadError('');
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) {
+      setUploadError('Please select a resume file');
+      return;
+    }
+
+    if (!user) {
+      setUploadError('Please sign in to upload your resume');
+      return;
+    }
+
+    // Check if we have job description data
+    const jobData = activeTab === 'text' ? jobDescription.trim() : jobUrl.trim();
+    if (!jobData) {
+      setUploadError('Please provide a job description or URL');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError('');
+    setUploadSuccess(false);
+
+    try {
+      const formData = new FormData();
+      formData.append('resume', selectedFile);
+      formData.append('jobDescriptions', JSON.stringify([jobData]));
+      formData.append('jobType', activeTab); // 'text' or 'url'
+
+      // Get user token for authentication
+      const token = await user.getIdToken();
+
+      const response = await axios.post('http://localhost:5000/api/upload/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('Upload successful:', response.data);
+      setUploadSuccess(true);
+      
+      // Reset form after successful upload
+      setTimeout(() => {
+        setSelectedFile(null);
+        setJobDescription('');
+        setJobUrl('');
+        setUploadSuccess(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploadError(error.response?.data?.error || 'Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -65,21 +165,68 @@ const ResumeUpload = ({ onBack }) => {
             </h3>
             
             {/* File Drop Zone */}
-            <div className="border-2 border-dashed border-slate-500 rounded-xl p-12 text-center hover:border-orange-400 transition-colors cursor-pointer group">
+            <div 
+              className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer group transition-all ${
+                dragActive 
+                  ? 'border-orange-400 bg-orange-500/10' 
+                  : selectedFile
+                    ? 'border-green-400 bg-green-500/10'
+                    : 'border-slate-500 hover:border-orange-400'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('file-input').click()}
+            >
+              <input
+                id="file-input"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleDrop}
+                className="hidden"
+              />
+              
               <div className="space-y-4">
                 <div className="flex justify-center">
-                  <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-                    <svg className="w-8 h-8 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                    selectedFile 
+                      ? 'bg-green-500/20 group-hover:bg-green-500/30' 
+                      : 'bg-orange-500/20 group-hover:bg-orange-500/30'
+                  }`}>
+                    {selectedFile ? (
+                      <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-8 h-8 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    )}
                   </div>
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-white mb-2">Drop your resume here, or click to browse</p>
-                  <p className="text-gray-400">Supports PDF, DOC, DOCX files up to 10MB</p>
+                  {selectedFile ? (
+                    <>
+                      <p className="text-lg font-semibold text-green-400 mb-2">✓ {selectedFile.name}</p>
+                      <p className="text-gray-400">File ready for upload • Click to change</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-semibold text-white mb-2">Drop your resume here, or click to browse</p>
+                      <p className="text-gray-400">Supports PDF, DOC, DOCX files up to 10MB</p>
+                    </>
+                  )}
                 </div>
-                <button className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg">
-                  Choose File
+                <button 
+                  type="button"
+                  className={`px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg ${
+                    selectedFile
+                      ? 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white'
+                      : 'bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white'
+                  }`}
+                >
+                  {selectedFile ? 'Change File' : 'Choose File'}
                 </button>
               </div>
             </div>
@@ -144,14 +291,44 @@ const ResumeUpload = ({ onBack }) => {
             </div>
           </div>
 
+          {/* Error Message */}
+          {uploadError && (
+            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 text-red-400 text-center">
+              {uploadError}
+            </div>
+          )}
+
+          {/* Success Message */}
+          {uploadSuccess && (
+            <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4 text-green-400 text-center">
+              ✓ Resume uploaded successfully! Analysis in progress...
+            </div>
+          )}
+
           {/* Analyze Button */}
           <div className="text-center">
-            <button className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 hover:from-orange-600 hover:via-pink-600 hover:to-teal-600 text-white px-12 py-4 rounded-xl text-xl font-bold transition-all hover:scale-105 shadow-2xl hover:shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
-              <span className="flex items-center">
-                <svg className="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Analyze Resume
+            <button 
+              onClick={handleAnalyze}
+              disabled={isUploading || !selectedFile}
+              className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 hover:from-orange-600 hover:via-pink-600 hover:to-teal-600 text-white px-12 py-4 rounded-xl text-xl font-bold transition-all hover:scale-105 shadow-2xl hover:shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="flex items-center justify-center">
+                {isUploading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Analyze Resume
+                  </>
+                )}
               </span>
             </button>
           </div>

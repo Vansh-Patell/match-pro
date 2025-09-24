@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ResumeUpload from './ResumeUpload';
-import MyProgress from './MyProgress';
+import MyAnalytics from './MyAnalytics';
 
 const MainPage = () => {
   const { user, logout } = useAuth();
@@ -27,8 +27,8 @@ const MainPage = () => {
     return <ResumeUpload onBack={handleBackToDashboard} />;
   }
 
-  if (currentView === 'progress') {
-    return <MyProgress onBack={handleBackToDashboard} />;
+  if (currentView === 'analytics') {
+    return <MyAnalytics onBack={handleBackToDashboard} onNavigateToUpload={() => setCurrentView('upload')} />;
   }
 
   return (
@@ -97,7 +97,7 @@ const MainPage = () => {
 
           {/* Optimization History Card */}
           <div 
-            onClick={() => setCurrentView('progress')}
+            onClick={() => setCurrentView('analytics')}
             className="bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 rounded-2xl p-8 hover:shadow-xl transition-all cursor-pointer group hover:border-teal-400 shadow-md hover:bg-slate-700/70"
           >
             <div className="text-teal-400 mb-6">
