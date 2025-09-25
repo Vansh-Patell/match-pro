@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { uploadAPI } from '../lib/api';
 
-const MyAnalytics = ({ onBack, onNavigateToUpload }) => {
+const MyAnalytics = ({ onBack, onNavigateToUpload, onAnalyzeFile }) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [analyzingFiles, setAnalyzingFiles] = useState(new Set());
 
   useEffect(() => {
     fetchFiles();
+    // Clear analyzing states when component mounts
+    setAnalyzingFiles(new Set());
   }, []);
 
   const fetchFiles = async () => {
@@ -37,6 +40,15 @@ const MyAnalytics = ({ onBack, onNavigateToUpload }) => {
     } catch (err) {
       console.error('Error deleting file:', err);
       alert('Failed to delete file');
+    }
+  };
+
+  const handleAnalyzeFile = (file) => {
+    // Add file to analyzing state
+    setAnalyzingFiles(prev => new Set([...prev, file.fileKey]));
+    
+    if (onAnalyzeFile) {
+      onAnalyzeFile(file);
     }
   };
 
@@ -207,6 +219,25 @@ const MyAnalytics = ({ onBack, onNavigateToUpload }) => {
                   </div>
                   
                   <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => handleAnalyzeFile(file)}
+                      disabled={analyzingFiles.has(file.fileKey)}
+                      className={`px-4 py-2 text-white text-sm rounded-lg transition-all duration-300 ${
+                        analyzingFiles.has(file.fileKey)
+                          ? 'bg-slate-600 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600'
+                      }`}
+                      title="Analyze with AI"
+                    >
+                      {analyzingFiles.has(file.fileKey) ? (
+                        <>
+                          <div className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent mr-2"></div>
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>🔍 Analyze</>
+                      )}
+                    </button>
                     <button
                       onClick={() => handleDeleteFile(file.fileKey)}
                       className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 
-const ResumeUpload = ({ onBack }) => {
+const ResumeUpload = ({ onBack, onAnalyzeFile }) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('text');
   const [jobDescription, setJobDescription] = useState('');
@@ -91,17 +91,42 @@ const ResumeUpload = ({ onBack }) => {
       console.log('Upload successful:', response.data);
       setUploadSuccess(true);
       
-      // Reset form after successful upload
+      // Show success toast
+      if (window.showToast) {
+        window.showToast('Resume uploaded successfully! Starting analysis...', 'success');
+      }
+      
+      // Auto-navigate to analysis after successful upload
+      const uploadedFile = {
+        fileKey: response.data.fileKey,
+        fileName: selectedFile.name,
+        jobDescription: jobDescription || '',
+        uploadedAt: new Date().toISOString()
+      };
+      
+      setTimeout(() => {
+        if (onAnalyzeFile) {
+          onAnalyzeFile(uploadedFile);
+        }
+      }, 1500); // Give time for toast to show
+      
+      // Reset form after navigation
       setTimeout(() => {
         setSelectedFile(null);
         setJobDescription('');
         setJobUrl('');
         setUploadSuccess(false);
-      }, 3000);
+      }, 2000);
 
     } catch (error) {
       console.error('Upload failed:', error);
-      setUploadError(error.response?.data?.error || 'Upload failed. Please try again.');
+      const errorMessage = error.response?.data?.error || 'Upload failed. Please try again.';
+      setUploadError(errorMessage);
+      
+      // Show error toast
+      if (window.showToast) {
+        window.showToast(errorMessage, 'error');
+      }
     } finally {
       setIsUploading(false);
     }

@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ResumeUpload from './ResumeUpload';
 import MyAnalytics from './MyAnalytics';
+import AIAnalysis from './AIAnalysis';
 
 const MainPage = () => {
   const { user, logout } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleLogout = async () => {
     try {
@@ -21,14 +23,40 @@ const MainPage = () => {
 
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
+    setSelectedFile(null);
+  };
+
+  const handleAnalyzeFile = (file) => {
+    setSelectedFile(file);
+    setCurrentView('aiAnalysis');
+  };
+
+  const handleBackToAnalytics = () => {
+    setCurrentView('analytics');
+    setSelectedFile(null);
   };
 
   if (currentView === 'upload') {
-    return <ResumeUpload onBack={handleBackToDashboard} />;
+    return <ResumeUpload onBack={handleBackToDashboard} onAnalyzeFile={handleAnalyzeFile} />;
   }
 
   if (currentView === 'analytics') {
-    return <MyAnalytics onBack={handleBackToDashboard} onNavigateToUpload={() => setCurrentView('upload')} />;
+    return (
+      <MyAnalytics 
+        onBack={handleBackToDashboard} 
+        onNavigateToUpload={() => setCurrentView('upload')}
+        onAnalyzeFile={handleAnalyzeFile}
+      />
+    );
+  }
+
+  if (currentView === 'aiAnalysis' && selectedFile) {
+    return (
+      <AIAnalysis 
+        file={selectedFile}
+        onBack={handleBackToAnalytics}
+      />
+    );
   }
 
   return (

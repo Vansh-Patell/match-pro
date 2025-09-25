@@ -5,6 +5,52 @@ const { analyzeResume } = require('../lib/ai-analysis');
 const uploadStorage = require('../lib/upload-storage');
 const router = express.Router();
 
+// Debug endpoint to check all files in storage (no auth required)
+router.get('/debug/all-files', (req, res) => {
+  try {
+    const allUploads = uploadStorage.getAllUploads();
+    res.json({
+      totalUsers: Object.keys(allUploads).length,
+      uploads: allUploads
+    });
+  } catch (error) {
+    console.error('Debug endpoint error:', error);
+    res.status(500).json({ error: 'Debug failed', message: error.message });
+  }
+});
+
+// Debug endpoint to check uploaded files
+router.get('/debug/files', verifyFirebaseToken, (req, res) => {
+  const userId = req.user?.uid || 'anonymous';
+  const userFiles = uploadStorage.getUserUploads(userId);
+  res.json({
+    userId,
+    filesCount: userFiles.length,
+    files: userFiles.map(f => ({
+      fileKey: f.fileKey,
+      originalName: f.fileName,
+      uploadedAt: f.uploadedAt
+    }))
+  });
+});
+
+// Debug endpoint to check all users (for debugging only)
+router.get('/debug/all-files', (req, res) => {
+  const allData = [];
+  uploadStorage.uploads.forEach((files, userId) => {
+    allData.push({
+      userId,
+      filesCount: files.length,
+      files: files.map(f => ({
+        fileKey: f.fileKey,
+        fileName: f.fileName,
+        uploadedAt: f.uploadedAt
+      }))
+    });
+  });
+  res.json(allData);
+});
+
 // Store analysis results (in-memory for now)
 const analysisStorage = new Map();
 
@@ -23,15 +69,20 @@ router.post('/resume', verifyFirebaseToken, async (req, res) => {
     
     console.log(`Starting analysis for file: ${fileKey}, user: ${userId}`);
     
+    // Debug: Check what files exist for this user
+    const userFiles = uploadStorage.getUserUploads(userId);
+    console.log(`User ${userId} has ${userFiles.length} files:`, userFiles.map(f => f.fileKey));
+    
     // Find the uploaded file metadata
     const uploadRecord = uploadStorage.findUploadByKey(userId, fileKey);
     if (!uploadRecord) {
+      console.log(`File ${fileKey} not found for user ${userId}`);
       return res.status(404).json({ error: 'File not found' });
     }
     
     // Extract text from the uploaded file
     console.log('Extracting text from file...');
-    const resumeText = await extractTextFromS3File(fileKey, uploadRecord.mimeType);
+    const resumeText = await extractTextFromS3File(fileKey, uploadRecord.fileType);
     
     if (!resumeText || resumeText.length < 50) {
       return res.status(400).json({ 

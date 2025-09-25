@@ -64,6 +64,15 @@ class UploadStorage {
     
     return uploads.find(u => u.fileKey === fileKey);
   }
+
+  // Get all uploads for debugging
+  getAllUploads() {
+    const result = {};
+    for (const [userId, uploads] of this.uploads) {
+      result[userId] = uploads;
+    }
+    return result;
+  }
 }
 
 // Create singleton instance
