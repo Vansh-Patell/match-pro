@@ -121,7 +121,7 @@ const ResumeUpload = ({ onBack }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
-            <div className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
+            <div className="text-2xl font-display font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
               Match-Pro
             </div>
           </div>
@@ -145,7 +145,7 @@ const ResumeUpload = ({ onBack }) => {
       <main className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
         {/* Page Title */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+          <h1 className="text-4xl md:text-5xl font-display font-bold mb-4 text-white">
             Resume Analyzer
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
@@ -157,7 +157,7 @@ const ResumeUpload = ({ onBack }) => {
         <div className="space-y-8 mb-16">
           {/* Resume Upload */}
           <div className="bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 rounded-2xl p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <h3 className="text-2xl font-display font-bold text-white mb-6 flex items-center">
               <svg className="w-7 h-7 text-orange-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
@@ -234,7 +234,7 @@ const ResumeUpload = ({ onBack }) => {
 
           {/* Job Description Input */}
           <div className="bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 rounded-2xl p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <h3 className="text-2xl font-display font-bold text-white mb-6 flex items-center">
               <svg className="w-7 h-7 text-teal-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6" />
               </svg>

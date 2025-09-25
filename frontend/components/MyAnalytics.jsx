@@ -13,11 +13,18 @@ const MyAnalytics = ({ onBack, onNavigateToUpload }) => {
   const fetchFiles = async () => {
     try {
       setLoading(true);
+      console.log('Fetching files...');
       const response = await uploadAPI.getUserFiles();
+      console.log('API response:', response);
       setFiles(response.files || []);
     } catch (err) {
       console.error('Error fetching files:', err);
-      setError('Failed to load your files');
+      console.error('Error details:', {
+        message: err.message,
+        status: err.status,
+        response: err.response
+      });
+      setError(`Failed to load your files: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -98,7 +105,7 @@ const MyAnalytics = ({ onBack, onNavigateToUpload }) => {
         </div>
         
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">
+          <h1 className="text-4xl font-display font-bold mb-4">
             My <span className="bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">Analytics</span>
           </h1>
           <p className="text-slate-300 text-lg">Track your resume uploads and analysis results</p>
@@ -154,7 +161,7 @@ const MyAnalytics = ({ onBack, onNavigateToUpload }) => {
           </div>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold mb-6">Your Uploaded Files</h2>
+            <h2 className="text-2xl font-display font-bold mb-6">Your Uploaded Files</h2>
             {files.map((file, index) => (
               <div
                 key={file.fileKey || file.id || index}

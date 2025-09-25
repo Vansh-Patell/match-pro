@@ -36,7 +36,7 @@ const MainPage = () => {
       {/* Header */}
       <header className="bg-slate-800/95 backdrop-blur-xl border-b border-slate-700 shadow-sm">
         <nav className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
+          <div className="text-2xl font-display font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
             Match-Pro
           </div>
           
@@ -65,7 +65,7 @@ const MainPage = () => {
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         {/* Welcome Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+          <h1 className="text-4xl md:text-5xl font-display font-bold mb-6 text-white">
             Welcome back, {user?.displayName?.split(' ')[0] || 'there'}! 👋
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
@@ -85,7 +85,7 @@ const MainPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold mb-3 group-hover:text-orange-300 transition-colors text-white">Upload Resume</h3>
+            <h3 className="text-2xl font-display font-bold mb-3 group-hover:text-orange-300 transition-colors text-white">Upload Resume</h3>
             <p className="text-gray-300 mb-6 leading-relaxed">Upload your current resume to get started with AI-powered optimization and detailed analysis.</p>
             <div className="text-orange-400 font-semibold hover:text-orange-300 flex items-center">
               Get Started 
@@ -105,7 +105,7 @@ const MainPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold mb-3 group-hover:text-teal-300 transition-colors text-white">My Analytics</h3>
+            <h3 className="text-2xl font-display font-bold mb-3 group-hover:text-teal-300 transition-colors text-white">My Analytics</h3>
             <p className="text-gray-300 mb-6 leading-relaxed">View your resume optimization history and track your improvement progress over time.</p>
             <div className="text-teal-400 font-semibold hover:text-teal-300 flex items-center">
               View History 

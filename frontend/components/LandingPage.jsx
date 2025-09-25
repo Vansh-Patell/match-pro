@@ -9,6 +9,8 @@ const LandingPage = () => {
   const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup' or 'quick-signin'
   const [activeStep, setActiveStep] = useState(0);
   const [isStepsVisible, setIsStepsVisible] = useState(false);
+  const [typewriterText, setTypewriterText] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
   const { user, logout } = useAuth();
 
   useEffect(() => {
@@ -59,6 +61,32 @@ const LandingPage = () => {
     }
   }, [isStepsVisible]);
 
+  // Typewriter effect for main headline
+  useEffect(() => {
+    const fullText = "Land Your Dream Job.";
+    let currentIndex = 0;
+    
+    const typeInterval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        setTypewriterText(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(typeInterval);
+        setShowCursor(false);
+      }
+    }, 100); // 100ms delay between each character
+
+    // Cursor blinking effect
+    const cursorInterval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 500);
+
+    return () => {
+      clearInterval(typeInterval);
+      clearInterval(cursorInterval);
+    };
+  }, []);
+
   const handleSignIn = () => {
     setAuthMode('signin');
     setShowAuthModal(true);
@@ -106,7 +134,7 @@ const LandingPage = () => {
           : 'bg-slate-900/80 backdrop-blur-sm'
       }`}>
         <nav className="max-w-7xl mx-auto px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="text-3xl font-bold bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 bg-clip-text text-transparent">
+          <div className="text-3xl font-display font-bold bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 bg-clip-text text-transparent">
             Match-Pro
           </div>
           
@@ -174,15 +202,33 @@ const LandingPage = () => {
               </span>
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-6xl lg:text-8xl font-black leading-tight text-white">
-              Land Your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400">
-                Dream Job
+            {/* Main Headline with Typewriter Effect */}
+            <h1 className="text-6xl lg:text-8xl font-display font-black leading-tight text-white min-h-[200px] flex items-center justify-center">
+              <span>
+                {typewriterText.split('').map((char, index) => {
+                  const isWordDreamJob = typewriterText.slice(0, index + 1).includes('Dream Job');
+                  const isDreamJobChar = index >= typewriterText.indexOf('Dream Job') && typewriterText.indexOf('Dream Job') !== -1;
+                  
+                  return (
+                    <span
+                      key={index}
+                      className={
+                        isDreamJobChar && char !== ' ' && char !== '.'
+                          ? "text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400"
+                          : ""
+                      }
+                    >
+                      {char}
+                    </span>
+                  );
+                })}
+                {showCursor && typewriterText.length < 19 && (
+                  <span className="animate-pulse text-orange-400">|</span>
+                )}
               </span>
             </h1>
             
-            <h2 className="text-2xl lg:text-4xl font-bold text-gray-300 leading-relaxed">
+            <h2 className="text-2xl lg:text-4xl font-display font-bold text-gray-300 leading-relaxed">
               with Intelligent Resume Optimization
             </h2>
 
@@ -318,7 +364,7 @@ const LandingPage = () => {
                   } rounded-2xl mb-8 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-2xl font-bold mb-6 text-white">{feature.title}</h3>
+                  <h3 className="text-2xl font-display font-bold mb-6 text-white">{feature.title}</h3>
                   <p className="text-gray-300 leading-relaxed text-lg">{feature.description}</p>
                 </div>
               </div>
@@ -435,31 +481,77 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 px-6 lg:px-8 bg-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,184,166,0.1)_0%,transparent_50%)]"></div>
+        
+        <div className="max-w-4xl mx-auto text-center relative">
+          <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-teal-500/20 to-emerald-500/20 border border-teal-400/30 backdrop-blur-sm font-medium text-sm mb-8">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3 animate-pulse"></div>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">
+              Currently Free
+            </span>
+          </div>
+          
+          <h2 className="text-4xl lg:text-6xl font-display font-bold mb-6 text-white">
+            Simple <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">Pricing</span>
+          </h2>
+          
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-12 max-w-lg mx-auto shadow-2xl">
+            <div className="text-center">
+              <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 mb-4">
+                FREE
+              </div>
+              <p className="text-xl text-gray-300 mb-8">
+                We're currently in beta - enjoy full access to all features at no cost!
+              </p>
+              
+              <div className="space-y-4 text-left">
+                <div className="flex items-center text-gray-300">
+                  <svg className="w-5 h-5 text-emerald-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Unlimited resume uploads
+                </div>
+                <div className="flex items-center text-gray-300">
+                  <svg className="w-5 h-5 text-emerald-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  AI-powered analysis
+                </div>
+                <div className="flex items-center text-gray-300">
+                  <svg className="w-5 h-5 text-emerald-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Job matching scores
+                </div>
+                <div className="flex items-center text-gray-300">
+                  <svg className="w-5 h-5 text-emerald-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Progress tracking
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 relative overflow-hidden bg-slate-800">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 via-pink-600/20 to-teal-600/20"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.1)_0%,transparent_50%)]"></div>
         
         <div className="max-w-4xl mx-auto text-center px-6 lg:px-8 relative">
-          <h2 className="text-4xl lg:text-6xl font-bold mb-6 text-white">
+          <h2 className="text-4xl lg:text-6xl font-display font-bold mb-6 text-white">
             Ready to Transform Your{' '}
             <span className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 bg-clip-text text-transparent">
               Career?
             </span>
           </h2>
-          <p className="text-xl text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
             Join professionals who've revolutionized their job search with AI-powered resume optimization. Stand out from the competition and land interviews faster.
           </p>
-          
-          <button 
-            onClick={() => setIsAuthOpen(true)}
-            className="group bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-5 rounded-2xl text-xl font-bold transition-all hover:scale-105 shadow-2xl hover:shadow-orange-500/25 flex items-center mx-auto"
-          >
-            Start Your Journey — Free
-            <svg className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </button>
         </div>
       </section>
 
@@ -559,6 +651,14 @@ const LandingPage = () => {
           <div className="pt-8 border-t border-slate-700/50 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
               © 2025 Match-Pro. Built with AI for the future of work.
+            </p>
+          </div>
+          
+          {/* Demo Project Notice */}
+          <div className="text-center mt-6 pt-6 border-t border-slate-700/30">
+            <p className="text-gray-500 text-xs max-w-2xl mx-auto leading-relaxed">
+              <span className="font-medium">Demo Project Notice:</span> This is a demonstration project created for educational and portfolio purposes only. 
+              Not intended for commercial use. All features, services, and claims shown are for demonstration purposes.
             </p>
           </div>
         </div>

@@ -109,7 +109,18 @@ export const uploadAPI = {
   },
   
   // Get user's uploaded files
-  getUserFiles: () => apiRequest('/upload/files'),
+  getUserFiles: async () => {
+    try {
+      return await apiRequest('/upload/files');
+    } catch (error) {
+      console.error('getUserFiles error:', error);
+      // Return empty result if there's an auth error
+      if (error.message.includes('No authenticated user')) {
+        return { files: [] };
+      }
+      throw error;
+    }
+  },
   
   // Delete a file
   deleteFile: (fileKey) => apiRequest(`/upload/files/${encodeURIComponent(fileKey)}`, {
