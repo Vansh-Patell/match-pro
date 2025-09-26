@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { uploadAPI } from '../lib/api';
 import ResumeUpload from './ResumeUpload';
 import MyAnalytics from './MyAnalytics';
 import AIAnalysis from './AIAnalysis';
@@ -8,6 +9,12 @@ const MainPage = () => {
   const { user, logout } = useAuth();
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [userStats, setUserStats] = useState({
+    optimizedResumes: 0,
+    jobsMatched: 0,
+    successRate: 0
+  });
 
   const handleLogout = async () => {
     try {
@@ -31,10 +38,53 @@ const MainPage = () => {
     setCurrentView('aiAnalysis');
   };
 
+  const handleAnalysisComplete = () => {
+    // Trigger refresh when analysis is completed
+    setRefreshTrigger(prev => prev + 1);
+    fetchUserStats();
+  };
+
   const handleBackToAnalytics = () => {
     setCurrentView('analytics');
     setSelectedFile(null);
+    // Trigger refresh for analytics component
+    setRefreshTrigger(prev => prev + 1);
+    // Refresh stats when returning from analysis
+    if (user) {
+      setTimeout(() => {
+        fetchUserStats();
+      }, 100);
+    }
   };
+
+  const fetchUserStats = async () => {
+    try {
+      console.log('Fetching user stats...');
+      const response = await uploadAPI.getUserFiles();
+      const files = response.files || [];
+      console.log('User files for stats:', files);
+      const analyzedFiles = files.filter(f => f.analyzed);
+      console.log('Analyzed files:', analyzedFiles);
+      
+      const newStats = {
+        optimizedResumes: analyzedFiles.length,
+        jobsMatched: analyzedFiles.filter(f => f.matchScore && f.matchScore > 70).length,
+        successRate: files.length > 0 ? Math.round((analyzedFiles.length / files.length) * 100) : 0
+      };
+      
+      console.log('Updated stats:', newStats);
+      setUserStats(newStats);
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  };
+
+  // Fetch user stats
+  useEffect(() => {
+    if (user && currentView === 'dashboard') {
+      fetchUserStats();
+    }
+  }, [user, currentView]);
 
   if (currentView === 'upload') {
     return <ResumeUpload onBack={handleBackToDashboard} onAnalyzeFile={handleAnalyzeFile} />;
@@ -46,6 +96,7 @@ const MainPage = () => {
         onBack={handleBackToDashboard} 
         onNavigateToUpload={() => setCurrentView('upload')}
         onAnalyzeFile={handleAnalyzeFile}
+        refreshTrigger={refreshTrigger}
       />
     );
   }
@@ -53,13 +104,12 @@ const MainPage = () => {
   if (currentView === 'aiAnalysis' && selectedFile) {
     return (
       <AIAnalysis 
-        file={selectedFile}
+        file={selectedFile} 
         onBack={handleBackToAnalytics}
+        onAnalysisComplete={handleAnalysisComplete}
       />
     );
-  }
-
-  return (
+  }  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       {/* Header */}
       <header className="bg-slate-800/95 backdrop-blur-xl border-b border-slate-700 shadow-sm">
@@ -150,24 +200,30 @@ const MainPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <span className="text-3xl font-bold text-orange-400">0</span>
+                <span className="text-3xl font-bold text-orange-400">{userStats.optimizedResumes}</span>
               </div>
               <div className="text-white font-semibold text-lg">Resumes Optimized</div>
-              <div className="text-gray-300 text-sm mt-1">Get started with your first upload</div>
+              <div className="text-gray-300 text-sm mt-1">
+                {userStats.optimizedResumes === 0 ? 'Get started with your first upload' : 'Keep optimizing for better results'}
+              </div>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <span className="text-3xl font-bold text-teal-400">0</span>
+                <span className="text-3xl font-bold text-teal-400">{userStats.jobsMatched}</span>
               </div>
               <div className="text-white font-semibold text-lg">Jobs Matched</div>
-              <div className="text-gray-300 text-sm mt-1">Find your perfect role</div>
+              <div className="text-gray-300 text-sm mt-1">
+                {userStats.jobsMatched === 0 ? 'Find your perfect role' : 'Strong matches found'}
+              </div>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <span className="text-3xl font-bold text-pink-400">0%</span>
+                <span className="text-3xl font-bold text-pink-400">{userStats.successRate}%</span>
               </div>
               <div className="text-white font-semibold text-lg">Success Rate</div>
-              <div className="text-gray-300 text-sm mt-1">Track your improvement</div>
+              <div className="text-gray-300 text-sm mt-1">
+                {userStats.successRate === 0 ? 'Track your improvement' : 'Great progress!'}
+              </div>
             </div>
           </div>
         </div>

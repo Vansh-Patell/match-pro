@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { uploadAPI } from '../lib/api';
 
-const MyAnalytics = ({ onBack, onNavigateToUpload, onAnalyzeFile }) => {
+const MyAnalytics = ({ onBack, onNavigateToUpload, onAnalyzeFile, refreshTrigger }) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [analyzingFiles, setAnalyzingFiles] = useState(new Set());
 
   useEffect(() => {
+    console.log('MyAnalytics refreshTrigger changed:', refreshTrigger);
     fetchFiles();
     // Clear analyzing states when component mounts
     setAnalyzingFiles(new Set());
-  }, []);
+  }, [refreshTrigger]);
 
   const fetchFiles = async () => {
     try {
@@ -19,6 +20,7 @@ const MyAnalytics = ({ onBack, onNavigateToUpload, onAnalyzeFile }) => {
       console.log('Fetching files...');
       const response = await uploadAPI.getUserFiles();
       console.log('API response:', response);
+      console.log('Files data:', response.files);
       setFiles(response.files || []);
     } catch (err) {
       console.error('Error fetching files:', err);
@@ -44,12 +46,42 @@ const MyAnalytics = ({ onBack, onNavigateToUpload, onAnalyzeFile }) => {
   };
 
   const handleAnalyzeFile = (file) => {
+    // If already analyzed, just view the results
+    if (file.analyzed) {
+      if (onAnalyzeFile) {
+        onAnalyzeFile(file);
+      }
+      return;
+    }
+
     // Add file to analyzing state
     setAnalyzingFiles(prev => new Set([...prev, file.fileKey]));
     
     if (onAnalyzeFile) {
       onAnalyzeFile(file);
     }
+  };
+
+  // Function to update file status after analysis
+  const updateFileAnalysisStatus = (fileKey, analysisData) => {
+    setFiles(prevFiles => 
+      prevFiles.map(file => 
+        file.fileKey === fileKey 
+          ? { 
+              ...file, 
+              analyzed: true, 
+              matchScore: analysisData?.jobMatchScore || analysisData?.overallScore,
+              lastAnalyzed: new Date().toISOString()
+            }
+          : file
+      )
+    );
+    // Remove from analyzing state
+    setAnalyzingFiles(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(fileKey);
+      return newSet;
+    });
   };
 
   const formatDate = (dateString) => {
@@ -227,13 +259,15 @@ const MyAnalytics = ({ onBack, onNavigateToUpload, onAnalyzeFile }) => {
                           ? 'bg-slate-600 cursor-not-allowed'
                           : 'bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600'
                       }`}
-                      title="Analyze with AI"
+                      title={file.analyzed ? "View Analysis Results" : "Analyze with AI"}
                     >
                       {analyzingFiles.has(file.fileKey) ? (
                         <>
                           <div className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent mr-2"></div>
                           Analyzing...
                         </>
+                      ) : file.analyzed ? (
+                        <>👁️ View Results</>
                       ) : (
                         <>🔍 Analyze</>
                       )}

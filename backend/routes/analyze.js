@@ -3,15 +3,16 @@ const { verifyFirebaseToken } = require('../middleware/auth');
 const { extractTextFromS3File } = require('../lib/resume-parser');
 const { analyzeResume } = require('../lib/ai-analysis');
 const uploadStorage = require('../lib/upload-storage');
+const s3Storage = require('../lib/s3-storage');
 const router = express.Router();
 
 // Debug endpoint to check all files in storage (no auth required)
-router.get('/debug/all-files', (req, res) => {
+router.get('/debug/all-files', async (req, res) => {
   try {
-    const allUploads = uploadStorage.getAllUploads();
+    const allUploads = await uploadStorage.getAllUploads();
     res.json({
-      totalUsers: Object.keys(allUploads).length,
-      uploads: allUploads
+      message: 'Using S3 storage - use specific user queries',
+      info: allUploads
     });
   } catch (error) {
     console.error('Debug endpoint error:', error);
@@ -20,9 +21,9 @@ router.get('/debug/all-files', (req, res) => {
 });
 
 // Debug endpoint to check uploaded files
-router.get('/debug/files', verifyFirebaseToken, (req, res) => {
+router.get('/debug/files', verifyFirebaseToken, async (req, res) => {
   const userId = req.user?.uid || 'anonymous';
-  const userFiles = uploadStorage.getUserUploads(userId);
+  const userFiles = await uploadStorage.getUserUploads(userId);
   res.json({
     userId,
     filesCount: userFiles.length,
@@ -34,25 +35,9 @@ router.get('/debug/files', verifyFirebaseToken, (req, res) => {
   });
 });
 
-// Debug endpoint to check all users (for debugging only)
-router.get('/debug/all-files', (req, res) => {
-  const allData = [];
-  uploadStorage.uploads.forEach((files, userId) => {
-    allData.push({
-      userId,
-      filesCount: files.length,
-      files: files.map(f => ({
-        fileKey: f.fileKey,
-        fileName: f.fileName,
-        uploadedAt: f.uploadedAt
-      }))
-    });
-  });
-  res.json(allData);
-});
+// Removed duplicate debug endpoint - using S3 storage now
 
-// Store analysis results (in-memory for now)
-const analysisStorage = new Map();
+// Analysis results now stored in S3 via s3Storage module
 
 /**
  * POST /api/analyze/resume
@@ -70,11 +55,11 @@ router.post('/resume', verifyFirebaseToken, async (req, res) => {
     console.log(`Starting analysis for file: ${fileKey}, user: ${userId}`);
     
     // Debug: Check what files exist for this user
-    const userFiles = uploadStorage.getUserUploads(userId);
+    const userFiles = await uploadStorage.getUserUploads(userId);
     console.log(`User ${userId} has ${userFiles.length} files:`, userFiles.map(f => f.fileKey));
     
     // Find the uploaded file metadata
-    const uploadRecord = uploadStorage.findUploadByKey(userId, fileKey);
+    const uploadRecord = await uploadStorage.findUploadByKey(userId, fileKey);
     if (!uploadRecord) {
       console.log(`File ${fileKey} not found for user ${userId}`);
       return res.status(404).json({ error: 'File not found' });
@@ -112,16 +97,21 @@ router.post('/resume', verifyFirebaseToken, async (req, res) => {
       status: 'completed'
     };
     
-    analysisStorage.set(analysisId, analysisResult);
+    // Save analysis result to S3
+    await s3Storage.saveAnalysisResult(userId, analysisId, analysisResult);
     
     console.log(`Analysis completed for ${analysisId}`);
     
     // Update upload record with analysis ID
-    uploadStorage.updateUpload(userId, fileKey, { 
-      analyzed: true, 
-      analysisId,
-      lastAnalyzed: new Date().toISOString()
-    });
+    const existingUpload = await uploadStorage.findUploadByKey(userId, fileKey);
+    if (existingUpload) {
+      await uploadStorage.updateUpload(userId, existingUpload.id, { 
+        analyzed: true, 
+        analysisId,
+        matchScore: analysis.jobMatchScore || analysis.overallScore,
+        lastAnalyzed: new Date().toISOString()
+      });
+    }
     
     res.json({
       success: true,
@@ -148,17 +138,13 @@ router.get('/results/:analysisId', verifyFirebaseToken, async (req, res) => {
     const userId = req.user?.uid || 'anonymous';
     const { analysisId } = req.params;
     
-    const analysisResult = analysisStorage.get(analysisId);
+    const analysisResult = await s3Storage.loadAnalysisResult(userId, analysisId);
     
     if (!analysisResult) {
       return res.status(404).json({ error: 'Analysis not found' });
     }
     
-    // Check if user owns this analysis
-    if (analysisResult.userId !== userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
+    // Analysis is already user-specific by userId in S3 path
     res.json({
       success: true,
       result: analysisResult
@@ -178,20 +164,28 @@ router.get('/history', verifyFirebaseToken, async (req, res) => {
   try {
     const userId = req.user?.uid || 'anonymous';
     
-    // Get all analyses for this user
+    // Get all analysis IDs for this user from S3
+    const analysisIds = await s3Storage.getUserAnalyses(userId);
+    
+    // Load summary data for each analysis
     const userAnalyses = [];
-    for (const [id, analysis] of analysisStorage) {
-      if (analysis.userId === userId) {
-        // Return summary without full text
-        userAnalyses.push({
-          id: analysis.id,
-          fileName: analysis.fileName,
-          overallScore: analysis.analysis.overallScore,
-          atsScore: analysis.analysis.atsScore,
-          jobMatchScore: analysis.analysis.jobMatchScore,
-          createdAt: analysis.createdAt,
-          status: analysis.status
-        });
+    for (const analysisId of analysisIds) {
+      try {
+        const analysis = await s3Storage.loadAnalysisResult(userId, analysisId);
+        if (analysis) {
+          // Return summary without full text
+          userAnalyses.push({
+            id: analysis.id,
+            fileName: analysis.fileName,
+            overallScore: analysis.analysis.overallScore,
+            atsScore: analysis.analysis.atsScore,
+            jobMatchScore: analysis.analysis.jobMatchScore,
+            createdAt: analysis.createdAt,
+            status: analysis.status
+          });
+        }
+      } catch (error) {
+        console.error(`Error loading analysis ${analysisId}:`, error);
       }
     }
     
@@ -218,19 +212,15 @@ router.delete('/results/:analysisId', verifyFirebaseToken, async (req, res) => {
     const userId = req.user?.uid || 'anonymous';
     const { analysisId } = req.params;
     
-    const analysisResult = analysisStorage.get(analysisId);
+    // Check if analysis exists and delete it
+    const analysisResult = await s3Storage.loadAnalysisResult(userId, analysisId);
     
     if (!analysisResult) {
       return res.status(404).json({ error: 'Analysis not found' });
     }
     
-    // Check if user owns this analysis
-    if (analysisResult.userId !== userId) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    // Delete from storage
-    analysisStorage.delete(analysisId);
+    // Delete from S3 (analysis is already user-specific by userId in path)
+    await s3Storage.deleteAnalysis(userId, analysisId);
     
     res.json({
       success: true,

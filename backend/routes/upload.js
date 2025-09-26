@@ -105,7 +105,7 @@ router.post('/upload', verifyFirebaseToken, upload.single('resume'), async (req,
     const result = await s3.upload(params).promise();
 
     // Save upload metadata
-    const uploadRecord = uploadStorage.addUpload(userId, {
+    const uploadRecord = await uploadStorage.addUpload(userId, {
       fileKey: result.Key,
       fileName: req.file.originalname,
       fileSize: req.file.size,
@@ -137,7 +137,7 @@ router.get('/files', verifyFirebaseToken, async (req, res) => {
     const userId = req.user?.uid || 'anonymous';
     
     // Get stored upload metadata
-    const uploads = uploadStorage.getUserUploads(userId);
+    const uploads = await uploadStorage.getUserUploads(userId);
     
     res.json({ files: uploads });
 
@@ -154,7 +154,7 @@ router.delete('/files/:fileKey', verifyFirebaseToken, async (req, res) => {
     const { fileKey } = req.params;
     
     // Find the upload record
-    const upload = uploadStorage.findUploadByKey(userId, fileKey);
+    const upload = await uploadStorage.findUploadByKey(userId, fileKey);
     if (!upload) {
       return res.status(404).json({ error: 'File not found' });
     }
@@ -168,7 +168,7 @@ router.delete('/files/:fileKey', verifyFirebaseToken, async (req, res) => {
     await s3.deleteObject(params).promise();
     
     // Delete from storage
-    uploadStorage.deleteUpload(userId, upload.id);
+    await uploadStorage.deleteUpload(userId, upload.id);
     
     res.json({ success: true, message: 'File deleted successfully' });
 

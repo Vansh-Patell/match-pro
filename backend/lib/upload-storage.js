@@ -1,77 +1,65 @@
-// Simple in-memory storage for upload metadata
-// In production, this should be replaced with a proper database
+// S3-backed persistent storage for upload metadata
+const s3Storage = require('./s3-storage');
 
 class UploadStorage {
   constructor() {
-    this.uploads = new Map(); // userId -> uploads[]
+    // No in-memory storage needed - using S3
   }
 
   // Add upload metadata
-  addUpload(userId, uploadData) {
-    if (!this.uploads.has(userId)) {
-      this.uploads.set(userId, []);
+  async addUpload(userId, uploadData) {
+    try {
+      return await s3Storage.addFileToUserMetadata(userId, uploadData);
+    } catch (error) {
+      console.error('Error adding upload:', error);
+      throw error;
     }
-    
-    const uploads = this.uploads.get(userId);
-    uploads.push({
-      id: Date.now().toString(),
-      ...uploadData,
-      uploadedAt: new Date().toISOString(),
-      analyzed: false,
-      matchScore: null
-    });
-    
-    return uploads[uploads.length - 1];
   }
 
   // Get all uploads for a user
-  getUserUploads(userId) {
-    return this.uploads.get(userId) || [];
+  async getUserUploads(userId) {
+    try {
+      return await s3Storage.loadUserMetadata(userId);
+    } catch (error) {
+      console.error('Error getting user uploads:', error);
+      return [];
+    }
   }
 
   // Update upload metadata
-  updateUpload(userId, uploadId, updateData) {
-    const uploads = this.uploads.get(userId);
-    if (!uploads) return null;
-    
-    const uploadIndex = uploads.findIndex(u => u.id === uploadId);
-    if (uploadIndex === -1) return null;
-    
-    uploads[uploadIndex] = {
-      ...uploads[uploadIndex],
-      ...updateData
-    };
-    
-    return uploads[uploadIndex];
+  async updateUpload(userId, uploadId, updateData) {
+    try {
+      return await s3Storage.updateFileInUserMetadata(userId, uploadId, updateData);
+    } catch (error) {
+      console.error('Error updating upload:', error);
+      return null;
+    }
   }
 
   // Delete upload metadata
-  deleteUpload(userId, uploadId) {
-    const uploads = this.uploads.get(userId);
-    if (!uploads) return false;
-    
-    const uploadIndex = uploads.findIndex(u => u.id === uploadId);
-    if (uploadIndex === -1) return false;
-    
-    uploads.splice(uploadIndex, 1);
-    return true;
+  async deleteUpload(userId, uploadId) {
+    try {
+      return await s3Storage.deleteFileFromUserMetadata(userId, uploadId);
+    } catch (error) {
+      console.error('Error deleting upload:', error);
+      return false;
+    }
   }
 
   // Find upload by file key
-  findUploadByKey(userId, fileKey) {
-    const uploads = this.uploads.get(userId);
-    if (!uploads) return null;
-    
-    return uploads.find(u => u.fileKey === fileKey);
+  async findUploadByKey(userId, fileKey) {
+    try {
+      return await s3Storage.findFileByKey(userId, fileKey);
+    } catch (error) {
+      console.error('Error finding upload by key:', error);
+      return null;
+    }
   }
 
   // Get all uploads for debugging
-  getAllUploads() {
-    const result = {};
-    for (const [userId, uploads] of this.uploads) {
-      result[userId] = uploads;
-    }
-    return result;
+  async getAllUploads() {
+    // This would be expensive in S3, so we'll return a message
+    return { message: 'Use specific user queries for S3 storage' };
   }
 }
 
