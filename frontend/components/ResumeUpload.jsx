@@ -81,7 +81,8 @@ const ResumeUpload = ({ onBack, onAnalyzeFile }) => {
       // Get user token for authentication
       const token = await user.getIdToken();
 
-      const response = await axios.post('http://localhost:5000/api/upload/upload', formData, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`

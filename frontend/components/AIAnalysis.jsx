@@ -27,10 +27,12 @@ const AIAnalysis = ({ file, onBack, onAnalysisComplete }) => {
       // Get Firebase token
       const token = await user.getIdToken();
       
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      
       // First, check if analysis already exists for this file
       if (file.analyzed && file.analysisId) {
         try {
-          const cachedResponse = await fetch(`http://localhost:5000/api/analyze/results/${file.analysisId}`, {
+          const cachedResponse = await fetch(`${API_BASE_URL}/analyze/results/${file.analysisId}`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`
@@ -50,7 +52,7 @@ const AIAnalysis = ({ file, onBack, onAnalysisComplete }) => {
       }
       
       // Call the analyze API endpoint
-      const response = await fetch(`http://localhost:5000/api/analyze/resume`, {
+      const response = await fetch(`${API_BASE_URL}/analyze/resume`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
