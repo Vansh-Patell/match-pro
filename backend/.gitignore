@@ -10,8 +10,10 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+*.pem
+*.key
 
-# Firebase Service Account Keys (NEVER COMMIT THESE!)
+# Firebase Service Account Keys
 service-account-key.json
 *-firebase-adminsdk-*.json
 firebase-adminsdk-*.json
