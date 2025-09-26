@@ -37,6 +37,7 @@ const ResumeUpload = ({ onBack, onAnalyzeFile }) => {
       
       setSelectedFile(file);
       setUploadError('');
+
     }
   };
 
@@ -82,11 +83,12 @@ const ResumeUpload = ({ onBack, onAnalyzeFile }) => {
       const token = await user.getIdToken();
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/upload/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        timeout: 60000 // 60 seconds timeout
       });
 
       console.log('Upload successful:', response.data);
