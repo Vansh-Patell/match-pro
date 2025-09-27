@@ -128,6 +128,26 @@ export const uploadAPI = {
   }),
 };
 
+// Analyze API methods
+export const analyzeAPI = {
+  // Analyze a resume
+  analyzeResume: (fileKey, jobDescription = '') => apiRequest('/analyze/resume', {
+    method: 'POST',
+    body: JSON.stringify({ fileKey, jobDescription }),
+  }),
+  
+  // Get analysis results
+  getAnalysisResults: (analysisId) => apiRequest(`/analyze/results/${analysisId}`),
+  
+  // Get analysis history
+  getAnalysisHistory: () => apiRequest('/analyze/history'),
+  
+  // Delete analysis results
+  deleteAnalysis: (analysisId) => apiRequest(`/analyze/results/${analysisId}`, {
+    method: 'DELETE',
+  }),
+};
+
 // Health check
 export const healthCheck = () => publicApiRequest('/health');
 

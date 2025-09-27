@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { uploadAPI } from '../lib/api';
+import { uploadAPI, analyzeAPI } from '../lib/api';
 
 const AIAnalysis = ({ file, onBack, onAnalysisComplete }) => {
   const { user } = useAuth();
@@ -24,51 +24,24 @@ const AIAnalysis = ({ file, onBack, onAnalysisComplete }) => {
         throw new Error('Please sign in to analyze your resume');
       }
       
-      // Get Firebase token
-      const token = await user.getIdToken();
-      
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      
       // First, check if analysis already exists for this file
       if (file.analyzed && file.analysisId) {
         try {
-          const cachedResponse = await fetch(`${API_BASE_URL}/analyze/results/${file.analysisId}`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (cachedResponse.ok) {
-            const cachedResult = await cachedResponse.json();
-            // The cached result structure is different - it's under 'result.analysis'
-            setAnalysis(cachedResult.result?.analysis || cachedResult.analysis);
-            setLoading(false);
-            return;
-          }
+          const cachedResult = await analyzeAPI.getAnalysisResults(file.analysisId);
+          // The cached result structure is different - it's under 'result.analysis'
+          setAnalysis(cachedResult.result?.analysis || cachedResult.analysis);
+          setLoading(false);
+          return;
         } catch (cacheError) {
           console.log('No cached analysis found, performing new analysis...');
         }
       }
       
       // Call the analyze API endpoint
-      const response = await fetch(`${API_BASE_URL}/analyze/resume`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          fileKey: file.fileKey,
-          jobDescription: file.jobDescription || 'Software engineer position requiring technical skills and experience'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await analyzeAPI.analyzeResume(
+        file.fileKey,
+        file.jobDescription || 'Software engineer position requiring technical skills and experience'
+      );
       setAnalysis(result.analysis); // Extract the analysis object from the response
       
       // Notify parent that analysis is complete
