@@ -9,8 +9,6 @@ Match-Pro is a modern web application that leverages artificial intelligence to 
 - [Current Architecture](#current-architecture)
 - [Features](#features)
 - [Technology Stack](#technology-stack)
-- [Deployment](#deployment)
-- [Phase Roadmap](#phase-roadmap)
 
 ## 🎯 Project Overview
 
@@ -71,15 +69,15 @@ AWS S3 Bucket Structure:
 ## ✨ Features
 
 ### **Phase 1 (Current - Production Ready)**
-- ✅ **User Authentication** - Firebase Auth with Google/Email
-- ✅ **Resume Upload** - PDF/DOC support with S3 storage
-- ✅ **AI Analysis** - OpenAI GPT-powered resume analysis
-- ✅ **ATS Scoring** - Applicant Tracking System compatibility
-- ✅ **Job Matching** - Resume-to-job description matching
-- ✅ **Tabbed Interface** - Overview, ATS Analysis, Job Matching, Suggestions
-- ✅ **State Management** - Persistent data with S3 backend
-- ✅ **Analytics Dashboard** - User progress tracking
-- ✅ **Caching System** - Avoid duplicate AI requests
+- **User Authentication** - Firebase Auth with Google/Email
+- **Resume Upload** - PDF/DOC support with S3 storage
+- **AI Analysis** - OpenAI GPT-powered resume analysis
+- **ATS Scoring** - Applicant Tracking System compatibility
+- **Job Matching** - Resume-to-job description matching
+- **Tabbed Interface** - Overview, ATS Analysis, Job Matching, Suggestions
+- **State Management** - Persistent data with S3 backend
+- **Analytics Dashboard** - User progress tracking
+- **Caching System** - Avoid duplicate AI requests
 
 ### **Analysis Features**
 - **ATS Compatibility Score** - 0-100% rating
@@ -109,28 +107,7 @@ AWS S3 Bucket Structure:
 ### **Infrastructure**
 - **File Storage**: AWS S3 (resumes, metadata, analysis)
 - **Authentication**: Firebase Auth
-- **Hosting**: Ready for Vercel/Netlify (frontend) + AWS/Railway (backend)
-
-## 💡 Technical Decisions
-
-### **Why I Chose S3 for Storage**
-- **Scalability**: Handles unlimited file storage
-- **Cost-effective**: Pay-per-use pricing model
-- **Reliability**: 99.999999999% durability
-- **Global CDN**: Fast access worldwide
-- **Easy migration**: Can move to database later
-
-### **Why Firebase Auth**
-- **Social logins**: Google, GitHub, etc.
-- **Security**: Industry-standard JWT tokens
-- **Scalability**: Handles millions of users
-- **Integration**: Works seamlessly with frontend
-
-### **Why OpenAI GPT-3.5**
-- **Cost-effective**: Cheaper than GPT-4 for bulk processing
-- **Fast responses**: ~2-3 second analysis time
-- **Reliable**: Consistent quality for resume analysis
-- **API stability**: Production-ready service
+- **Hosting**: Vercel (frontend) + Azure App Service (backend)
 
 ---
 *Making job applications smarter, one resume at a time.*
